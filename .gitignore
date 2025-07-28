@@ -34,3 +34,4 @@ go.work.sum
 bin/
 *.env
 service_linux
+vendor.protogen/
