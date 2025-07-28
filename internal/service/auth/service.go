@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/UraharaKiska/go-auth/internal/client/db"
+	"github.com/UraharaKiska/platform-common/pkg/db"
 	"github.com/UraharaKiska/go-auth/internal/repository"
 	"github.com/UraharaKiska/go-auth/internal/service"
 )

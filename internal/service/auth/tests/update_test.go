@@ -8,9 +8,9 @@ import (
 	// "fmt"
 	"testing"
 
-	"github.com/UraharaKiska/go-auth/internal/client/db"
+	"github.com/UraharaKiska/platform-common/pkg/db"
 	// "github.com/UraharaKiska/go-auth/internal/client/db/mock"
-	txMock "github.com/UraharaKiska/go-auth/internal/client/db/mock"
+	txMock "github.com/UraharaKiska/platform-common/pkg/db/mock"
 	"github.com/UraharaKiska/go-auth/internal/model"
 	"github.com/UraharaKiska/go-auth/internal/repository"
 	repositoryMocks "github.com/UraharaKiska/go-auth/internal/repository/mock"

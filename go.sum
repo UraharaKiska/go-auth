@@ -4,6 +4,10 @@ github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8
 github.com/Masterminds/squirrel v1.5.4/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA400rg+riTZj10=
 github.com/UraharaKiska/platform-common v0.0.0-20250727223748-abea00d06ebe h1:JKwcEOT8jnGjzuSVqfzL4fhDe8UnlUSZ2v84wSilFMQ=
 github.com/UraharaKiska/platform-common v0.0.0-20250727223748-abea00d06ebe/go.mod h1:hLC30Oz4Q/7iIPqcfF7SnmHy0+9ja5rBy4KLT1p+KQM=
+github.com/UraharaKiska/platform-common v0.0.0-20250727233635-cb0c38b438c4 h1:UqTqqDJuQmhQq1REdFodpVOM6U8FzLfU+/xmEl0E3Os=
+github.com/UraharaKiska/platform-common v0.0.0-20250727233635-cb0c38b438c4/go.mod h1:IYt2h/m8OuSuCrUKCWEFiZ1/MMon7NAcFdi0doGutfI=
+github.com/UraharaKiska/platform-common v0.0.0-20250728081435-f7a7eedd794d h1:ZDPn+4PKLocy96P1BmovJ+otAxQtF0e08NxLK+vpWVk=
+github.com/UraharaKiska/platform-common v0.0.0-20250728081435-f7a7eedd794d/go.mod h1:IYt2h/m8OuSuCrUKCWEFiZ1/MMon7NAcFdi0doGutfI=
 github.com/brianvoe/gofakeit/v6 v6.28.0 h1:Xib46XXuQfmlLS2EXRuJpqcw8St6qSZz75OUo0tgAW4=
 github.com/brianvoe/gofakeit/v6 v6.28.0/go.mod h1:Xj58BMSnFqcn/fAQeSK+/PLtC5kSb7FJIq4JyGa8vEs=
 github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=

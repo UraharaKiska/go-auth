@@ -6,7 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	// "github.com/UraharaKiska/go-auth/internal/client/db"
-	"github.com/UraharaKiska/go-auth/internal/client/db"
+	"github.com/UraharaKiska/platform-common/pkg/db"
 	"github.com/UraharaKiska/go-auth/internal/model"
 	"github.com/UraharaKiska/go-auth/internal/repository"
 	"github.com/UraharaKiska/go-auth/internal/repository/user/converter"
