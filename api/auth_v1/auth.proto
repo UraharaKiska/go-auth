@@ -6,14 +6,54 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/UraharaKiska/go-auth/pkg/auth_v1;auth_v1";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Auth API"
+    version: "1.0.0"
+    contact: {
+      name: "Ichigo Kurasaki"
+    };
+  };
+
+  host: "localhost:8081",
+  schemes: HTTP,
+  schemes: HTTPS,
+  consumes: "application/json",
+  produces: "applications/json",
+};
+
 service AuthV1 {
-  rpc Create(CreateRequest) returns (CreateResponse);
-  rpc Get(GetRequest) returns (GetResponse);
-  rpc Update(UpdateRequest) returns (google.protobuf.Empty);
-  rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+  // Создать пользователя
+  rpc Create(CreateRequest) returns (CreateResponse){
+    option (google.api.http) = {
+      post: "/auth/v1/user"
+      body: "*"
+    };
+  }
+  // Получить данные пользователя
+  rpc Get(GetRequest) returns (GetResponse){
+    option (google.api.http) = {
+      get: "/auth/v1/user"
+    };
+  }
+  // Обновить информацию и пользователе
+  rpc Update(UpdateRequest) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      patch: "/auth/v1/user"
+      body: "*"
+    };
+  }
+  // Удалить пользователя
+  rpc Delete(DeleteRequest) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      delete: "/auth/v1/user"
+    };
+  }
 }
 
 enum EnumRole {

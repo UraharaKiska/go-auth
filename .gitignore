@@ -35,3 +35,4 @@ bin/
 *.env
 service_linux
 vendor.protogen/
+pkg/swagger/
