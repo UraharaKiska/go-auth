@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 func (i *Implementation) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
 	log.Printf("API - GET")
-	err := i.authService.Update(ctx, converter.ToUserUpdateInfoFromDesc(req.GetInfo()), req.GetId())
+	err := i.userService.Update(ctx, converter.ToUserUpdateInfoFromDesc(req.GetInfo()), req.GetId())
 	if err != nil {
 		return nil, err
 	}

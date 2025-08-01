@@ -1,14 +1,14 @@
-package auth
+package user
 
 import (
 	"context"
-	"log"
 
+	// "github.com/UraharaKiska/go-auth/internal/logger"
 	"github.com/UraharaKiska/go-auth/internal/model"
+	// "go.uber.org/zap"
 )
 
 func (s *serv) Get(ctx context.Context, id int64) (*model.User, error) {
-	log.Printf("SERVICE - GET")
 	var user *model.User
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error

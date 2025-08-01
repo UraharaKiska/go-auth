@@ -15,8 +15,7 @@ type User struct {
 type UserInfo struct {
 	Name            string `db:"name"`
 	Email           string `db:"email"`
-	Password        string `db:"password"`
-	PasswordConfirm string `db:"password_confirm"`
+	PasswordHash    string `db:"password_hash"`
 	Role            string `db:"role"`
 }
 

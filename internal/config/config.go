@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -26,9 +27,23 @@ type SWAGGERConfig interface {
 	Address() string
 }
 
+type PrometheusConfig interface {
+	Address() string
+}
+
 type PGConfig interface {
 	DSN() string
 }
+
+type AUTHConfig interface {
+	RefreshTokenExpiration() time.Duration 
+	AccessTokenExpiration() time.Duration 
+	RefreshTokenESecretKey() []byte
+	AccessTokenESecretKey() []byte
+	AuthHeader() string
+	AuthPrefix() string
+}
+
 
 func ParseConfig() string {
 	var configPath string

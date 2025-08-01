@@ -18,8 +18,16 @@ func ToUserInfoFromRepo(info modelRepo.UserInfo) model.UserInfo {
 	return model.UserInfo{
 		Name:            info.Name,
 		Email:           info.Email,
-		Password:        info.Password,
-		PasswordConfirm: info.PasswordConfirm,
+		Password:        info.PasswordHash,
 		Role:            info.Role,
 	}
+}
+
+func ToUserInfoFromService(info *model.UserInfo) *modelRepo.UserInfo {
+	return &modelRepo.UserInfo{
+		Name:            info.Name,
+		Email:           info.Email,
+		PasswordHash:        info.Password,
+		Role:            info.Role,
+	} 
 }

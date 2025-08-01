@@ -3,16 +3,18 @@ version: '3'
 volumes:
   postgres_volume_local:
   postgres_volume_prod:
+  prometheus_data:
+  grafana_data:
 
 services:
-  pg-prod:
-    image: postgres:14-alpine3.17
-    env_file:
-      - "prod.env"
-    ports:
-      - "54322:5432"
-    volumes:
-      - postgres_volume_prod:/var/lib/postgresql/data
+  # pg-prod:
+  #   image: postgres:14-alpine3.17
+  #   env_file:
+  #     - "prod.env"
+  #   ports:
+  #     - "54322:5432"
+  #   volumes:
+  #     - postgres_volume_prod:/var/lib/postgresql/data
 
   
   pg-local:
@@ -32,10 +34,19 @@ services:
     environment:
       DB_HOST: pg-local
 
-  migrator-prod:
-    build:
-      context: .
-      dockerfile: migration_prod.Dockerfile
-    restart: on-failure
-    environment:
-      DB_HOST: pg-prod
+  # migrator-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: migration_prod.Dockerfile
+  #   restart: on-failure
+  #   environment:
+  #     DB_HOST: pg-prod
+
+  prometheus:
+    image: prom/prometheus:v2.37.9
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus

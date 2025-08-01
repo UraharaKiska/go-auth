@@ -27,31 +27,31 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   produces: "applications/json",
 };
 
-service AuthV1 {
+service UserV1 {
   // Создать пользователя
   rpc Create(CreateRequest) returns (CreateResponse){
     option (google.api.http) = {
-      post: "/auth/v1/user"
+      post: "/api/v1/user"
       body: "*"
     };
   }
   // Получить данные пользователя
   rpc Get(GetRequest) returns (GetResponse){
     option (google.api.http) = {
-      get: "/auth/v1/user"
+      get: "/api/v1/user"
     };
   }
   // Обновить информацию и пользователе
   rpc Update(UpdateRequest) returns (google.protobuf.Empty){
     option (google.api.http) = {
-      patch: "/auth/v1/user"
+      patch: "/api/v1/user"
       body: "*"
     };
   }
   // Удалить пользователя
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty){
     option (google.api.http) = {
-      delete: "/auth/v1/user"
+      delete: "/api/v1/user"
     };
   }
 }
@@ -69,6 +69,7 @@ message UserInfo {
   EnumRole role = 5;
 }
 
+
 message User {
   int64 id = 1;
   UserInfo info = 2;
@@ -79,6 +80,14 @@ message User {
 message UpdateUserInfo {
   google.protobuf.StringValue name = 1;
   google.protobuf.StringValue email = 2;
+}
+
+message UserInfoSecure {
+  string name = 1;
+  string email = 2;
+  EnumRole role = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }
 
 message CreateRequest {
@@ -94,7 +103,7 @@ message GetRequest {
 }
 
 message GetResponse {
-  User user = 1;
+  UserInfoSecure info = 1;
 }
 
 message UpdateRequest {
@@ -104,4 +113,53 @@ message UpdateRequest {
 
 message DeleteRequest {
   int64 id = 1;
+}
+
+
+service AuthV1 {
+
+  rpc Login(LoginRequest) returns (LoginResponse){
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+  }
+  rpc GetRefreshToken(GetRefreshTokenRequest) returns (GetRefreshTokenResponse){
+    option (google.api.http) = {
+      post: "/api/v1/refresh"
+      body: "*"
+    };
+  }
+  rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse){
+    option (google.api.http) = {
+      post: "/api/v1/access"
+      body: "*"
+    };
+  }
+
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string refresh_token = 1;
+}
+
+message GetRefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message GetRefreshTokenResponse {
+  string refresh_token = 1;
+}
+
+message GetAccessTokenRequest {
+  string refresh_token = 1;
+}
+
+message GetAccessTokenResponse {
+  string access_token = 1;
 }

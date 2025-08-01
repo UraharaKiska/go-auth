@@ -9,28 +9,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToUserFromService(user *model.User) *desc.User {
+func ToUserSecureFromService(user *model.User) *desc.UserInfoSecure {
 	var updateAt *timestamppb.Timestamp
 	if user.UpdatedAt.Valid {
 		updateAt = timestamppb.New(user.UpdatedAt.Time)
 	}
-
-	return &desc.User{
-		Id:        user.ID,
-		Info:      ToUserInfoFromService(&user.Info),
+	roleValue := desc.EnumRole_value[user.Info.Role]
+	return &desc.UserInfoSecure{
+		Name:   user.Info.Name,
+		Email:   user.Info.Email,
+		Role:    desc.EnumRole(roleValue),
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: updateAt,
-	}
-}
-
-func ToUserInfoFromService(info *model.UserInfo) *desc.UserInfo {
-	roleValue := desc.EnumRole_value[info.Role]
-	return &desc.UserInfo{
-		Name:            info.Name,
-		Email:           info.Email,
-		Password:        info.Password,
-		PasswordConfirm: info.PasswordConfirm,
-		Role:            desc.EnumRole(roleValue),
 	}
 }
 
@@ -43,6 +33,14 @@ func ToUserInfoFromDesc(info *desc.UserInfo) *model.UserInfo {
 		Role:            info.GetRole().String(),
 	}
 }
+
+func ToUserInfoFromDescLoginRequest(info *desc.LoginRequest) *model.UserInfo {
+	return &model.UserInfo{
+		Email:           info.Email,
+		Password:        info.Password,
+	}
+}
+
 
 func ToUserUpdateInfoFromService(info *model.UserUpdateInfo) *modelRepo.UpdateUserInfo {
 	updateUserInfo := &modelRepo.UpdateUserInfo{}
@@ -72,4 +70,12 @@ func ToUserUpdateInfoFromDesc(info *desc.UpdateUserInfo) *model.UserUpdateInfo {
 		userUpdateInfo.Email = model.OptionString{Valid: false}
 	}
 	return userUpdateInfo
+}
+
+
+func ToUserAuthFromDesc(user *desc.LoginRequest) *model.UserAuth {
+	return &model.UserAuth{
+		Email: user.GetEmail(),
+		Password: user.GetPassword(),
+	}
 }

@@ -9,16 +9,21 @@ import (
 	"sync"
 
 	"github.com/UraharaKiska/go-auth/internal/config"
+	"github.com/UraharaKiska/go-auth/internal/metric"
 	"github.com/UraharaKiska/go-auth/internal/interceptor"
+	accessV1 "github.com/UraharaKiska/go-auth/pkg/access_v1"
 	desc "github.com/UraharaKiska/go-auth/pkg/auth_v1"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	_ "github.com/UraharaKiska/go-auth/statik"
 	"github.com/UraharaKiska/platform-common/pkg/closer"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	_ "github.com/UraharaKiska/go-auth/statik"
 )
 
 type App struct {
@@ -26,11 +31,18 @@ type App struct {
 	grpcServer      *grpc.Server
 	httpServer		*http.Server
 	swaggerServer   *http.Server
+	prometheusServer *http.Server
+}
+
+var configPath string
+
+func InitConfigPath(configFilePath string) {
+    configPath = configFilePath
 }
 
 func NewApp(ctx context.Context) (*App, error) {
 	a := &App{}
-
+	metric.Init(ctx)
 	err := a.initDeps(ctx)
 	if err != nil {
 		return nil, err
@@ -47,7 +59,7 @@ func (a *App) Run() error {
 	}()
 
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -76,6 +88,15 @@ func (a *App) Run() error {
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+
+		err := a.runPrometheusServer()
+		if err != nil {
+			log.Fatalf("failed to run Prometheus server: %v", err)
+		}
+	}()
+
 	wg.Wait()
 	return nil
 }
@@ -87,6 +108,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
+		a.initPrometheuseServer,
 	}
 
 	for _, f := range inits {
@@ -99,7 +121,6 @@ func (a *App) initDeps(ctx context.Context) error {
 }
 
 func (a *App) initConfig(_ context.Context) error {
-	configPath := config.ParseConfig()
 	err := config.Load(configPath)
 	if err != nil {
 		return err
@@ -115,12 +136,20 @@ func (a *App) initServiceProvider(_ context.Context) error {
 func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
-		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
+		grpc.UnaryInterceptor(
+			grpcMiddleware.ChainUnaryServer(
+				interceptor.ValidateInterceptor,
+				interceptor.MetricsInterceptor,
+				interceptor.LogInterceptor,
+			),
+		),
 	)
 
 	reflection.Register(a.grpcServer)
 
+	desc.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
 	desc.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
+	accessV1.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
 	return nil
 }
@@ -132,7 +161,15 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
-	err := desc.RegisterAuthV1HandlerFromEndpoint(ctx, mux, a.serviceProvider.GRPCConfig().Address(), opts)
+	err := desc.RegisterUserV1HandlerFromEndpoint(ctx, mux, a.serviceProvider.GRPCConfig().Address(), opts)
+	if err != nil {
+		return err
+	}
+	err = desc.RegisterAuthV1HandlerFromEndpoint(ctx, mux, a.serviceProvider.GRPCConfig().Address(), opts)
+	if err != nil {
+		return err
+	}
+	err = accessV1.RegisterAccessV1HandlerFromEndpoint(ctx, mux, a.serviceProvider.GRPCConfig().Address(), opts)
 	if err != nil {
 		return err
 	}
@@ -162,6 +199,17 @@ func (a *App) initSwaggerServer(ctx context.Context) error {
 
 	a.swaggerServer = &http.Server{
 		Addr: a.serviceProvider.SwaggerConfig().Address(),
+		Handler: mux,
+	}
+	return nil
+}
+
+func (a *App) initPrometheuseServer(ctx context.Context) error {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	a.prometheusServer = &http.Server{
+		Addr: a.serviceProvider.PrometheusConfig().Address(),
 		Handler: mux,
 	}
 	return nil
@@ -228,6 +276,16 @@ func (a *App) runHTTPServer() error {
 	log.Printf("HTTP server is running on %v", a.serviceProvider.HTTPConfig().Address())
 
 	err := a.httpServer.ListenAndServe()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *App) runPrometheusServer() error {
+	log.Printf("Prometheus server is running on %v", a.serviceProvider.PrometheusConfig().Address())
+
+	err := a.prometheusServer.ListenAndServe()
 	if err != nil {
 		return err
 	}

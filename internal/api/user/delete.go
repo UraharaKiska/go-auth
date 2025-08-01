@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 func (i *Implementation) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
 	log.Printf("API - DELETE")
-	err := i.authService.Delete(ctx, req.GetId())
+	err := i.userService.Delete(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}

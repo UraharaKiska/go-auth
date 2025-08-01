@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"context"
@@ -14,12 +14,11 @@ import (
 )
 
 const (
-	tableName             = "auth"
+	tableName             = "users"
 	idColumn              = "id"
 	nameColumn            = "name"
 	emailColumn           = "email"
-	passwordColumn        = "password"
-	passwordConfirmColumn = "password_confirm"
+	passwordHashColumn        = "password_hash"
 	roleColumn            = "role"
 	createdAtColumn       = "created_at"
 	updatedAtColumn       = "updated_at"
@@ -33,12 +32,12 @@ func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, info *model.UserInfo) (int64, error) {
+func (r *repo) Create(ctx context.Context, info *modelRepo.UserInfo) (int64, error) {
 	log.Printf("REPOSITORY - CREATE")
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Columns(nameColumn, emailColumn, passwordColumn, passwordConfirmColumn, roleColumn).
-		Values(info.Name, info.Email, info.Password, info.PasswordConfirm, info.Role).
+		Columns(nameColumn, emailColumn, passwordHashColumn, roleColumn).
+		Values(info.Name, info.Email, info.PasswordHash, info.Role).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -61,8 +60,7 @@ func (r *repo) Create(ctx context.Context, info *model.UserInfo) (int64, error) 
 }
 
 func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
-	log.Printf("REPOSITORY - GET")
-	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, passwordColumn, passwordConfirmColumn, roleColumn, createdAtColumn, updatedAtColumn).
+	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, passwordHashColumn, roleColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{"id": id})
@@ -86,8 +84,31 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	return converter.ToUserFromRepo(&user), nil
 }
 
+func (r *repo) GetByEmail(ctx context.Context, email string) (*model.User, error) {
+	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, passwordHashColumn, roleColumn, createdAtColumn, updatedAtColumn).
+		From(tableName).
+		PlaceholderFormat(sq.Dollar).
+		Where(sq.Eq{"email": email})
+
+	query, args, err := builderSelect.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	q := db.Query{
+		Name:     "user_repository.GetByEmail",
+		QueryRaw: query,
+	}
+
+	var user modelRepo.User
+	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	return converter.ToUserFromRepo(&user), nil
+}
+
 func (r *repo) Update(ctx context.Context, info *modelRepo.UpdateUserInfo, id int64) error {
-	log.Printf("REPOSITORY - UPDATE")
 	builderUpdate := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar)
 	if info.Name.Valid {
@@ -115,7 +136,6 @@ func (r *repo) Update(ctx context.Context, info *modelRepo.UpdateUserInfo, id in
 }
 
 func (r *repo) Delete(ctx context.Context, id int64) error {
-	log.Printf("REPOSITORY - DELETE")
 	builderDelete := sq.Delete(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{idColumn: id})

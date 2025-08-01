@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 func (i *Implementation) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
 	log.Printf("API - GET")
-	id, err := i.authService.Create(ctx, converter.ToUserInfoFromDesc(req.GetInfo()))
+	id, err := i.userService.Create(ctx, converter.ToUserInfoFromDesc(req.GetInfo()))
 	if err != nil {
 		return nil, err
 	}
