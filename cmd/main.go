@@ -9,18 +9,27 @@ import (
 
 	"github.com/UraharaKiska/go-auth/internal/app"
 	"github.com/UraharaKiska/go-auth/internal/logger"
+	"github.com/UraharaKiska/go-auth/internal/tracing"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
+const serviceName = "go-auth"
+
 
 func main() {
+	ctx := context.Background()
 	configPath := flag.String("config-path", "local.env", "path to config file")
     logLevel := flag.String("l", "info", "logging level")
     flag.Parse()
 	app.InitConfigPath(*configPath)
-	logger.Init(getCore(getAtomicLevel(logLevel)))	
-	ctx := context.Background()
+	logger.Init(getCore(getAtomicLevel(logLevel)))
+	shutdown := tracing.Init(serviceName)
+	defer func() {
+        if err := shutdown(ctx); err != nil {
+            log.Fatalf("Error shutting down tracer: %v", err)
+        }
+    }()	
 	a, err := app.NewApp(ctx)
 	// log.Printf("App :%v", a)
 	if err != nil {

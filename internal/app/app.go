@@ -7,10 +7,12 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/UraharaKiska/go-auth/internal/config"
-	"github.com/UraharaKiska/go-auth/internal/metric"
 	"github.com/UraharaKiska/go-auth/internal/interceptor"
+	"github.com/UraharaKiska/go-auth/internal/metric"
+	ratelimiter "github.com/UraharaKiska/go-auth/internal/rate_limiter"
 	accessV1 "github.com/UraharaKiska/go-auth/pkg/access_v1"
 	desc "github.com/UraharaKiska/go-auth/pkg/auth_v1"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -21,6 +23,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -134,16 +137,20 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	rateLimiter := ratelimiter.NewTokenBucketLimiter(ctx, 10, time.Second)
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
+		grpc.StatsHandler(otelgrpc.NewClientHandler()),
 		grpc.UnaryInterceptor(
 			grpcMiddleware.ChainUnaryServer(
+				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
 				interceptor.ValidateInterceptor,
 				interceptor.MetricsInterceptor,
 				interceptor.LogInterceptor,
 			),
 		),
 	)
+
 
 	reflection.Register(a.grpcServer)
 

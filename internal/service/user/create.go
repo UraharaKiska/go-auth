@@ -26,10 +26,10 @@ func (s *serv) Create(ctx context.Context, info *model.UserInfo) (int64, error) 
 		if errTx != nil {
 			return errTx
 		}
-		// _, errTx = s.userRepository.Get(ctx, id)
-		// if errTx != nil {
-		// 	return errTx
-		// }
+		_, errTx = s.userRepository.Get(ctx, id)
+		if errTx != nil {
+			return errTx
+		}
 		return nil
 	})
 
